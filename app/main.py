@@ -1,6 +1,8 @@
 import  pygame
 import sys
 import random
+import os
+
 
 #Inicializar pygame
 pygame.init()
@@ -16,6 +18,26 @@ negro = (0, 0, 0)
 verde = (0, 255, 0)
 verde_oscuro = (0, 150, 0)
 
+#Score
+score = 0
+
+
+#Cargar archivo high score
+def cargar_high_score():
+    if os.path.exists("high_score.txt"):
+        with open("high_score.txt", "r") as archivo:
+            try:
+                return int (archivo.read())
+            except ValueError:
+                return 0
+    else:
+        return 0
+#Guardar el high score
+def guardar_high_score(score):
+    with open("high_score.txt", "w") as archivo:
+        archivo.write(str(score))
+
+high_score = cargar_high_score()
 #Crear la pantalla
 pantalla = pygame.display.set_mode((ancho, alto))
 pygame.display.set_caption("Snake V1 - Python")
@@ -69,6 +91,12 @@ def mostrar_menu():
 
             texto_render = fuente_pequeña.render(texto, True, (255, 255, 255))
             pantalla.blit(texto_render, (x - texto_render.get_width() // 2, y -10))
+        # Mostrar el score más alto
+        fuente = pygame.font.SysFont(None, 30)
+        texto_score = fuente.render(f"High Score: {high_score}", True, (255, 255, 0))
+        texto_high_score = fuente.render(f"Score: {score}", True, (255, 255, 0))
+        pantalla.blit(texto_score, (10, 10))
+        pantalla.blit(texto_high_score, (10, 40))
         pygame.display.flip()
 
         # Manejo de eventos
@@ -136,10 +164,17 @@ while True:
         print("Game Over")
         pygame.quit()
         sys.exit()
+        score = 0
 
     #comprobar si la cabeza de la serpiente toca la comida
     if nueva_cabeza == comida:
         longitud_snake += 1
+        score += 1
+        if score > high_score:
+            high_score = score
+            guardar_high_score(high_score)
+            
+
         comida = generar_comida()
 
 
