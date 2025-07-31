@@ -2,7 +2,7 @@ import  pygame
 import sys
 import random
 import os
-
+from app.game_over import mostrar_game_over
 
 #Inicializar pygame
 pygame.init()
@@ -24,8 +24,8 @@ score = 0
 
 #Cargar archivo high score
 def cargar_high_score():
-    if os.path.exists("high_score.txt"):
-        with open("high_score.txt", "r") as archivo:
+    if os.path.exists("high_score.csv"):
+        with open("high_score.csv", "r") as archivo:
             try:
                 return int (archivo.read())
             except ValueError:
@@ -34,7 +34,7 @@ def cargar_high_score():
         return 0
 #Guardar el high score
 def guardar_high_score(score):
-    with open("high_score.txt", "w") as archivo:
+    with open("high_score.csv", "w") as archivo:
         archivo.write(str(score))
 
 high_score = cargar_high_score()
@@ -57,10 +57,14 @@ vel_y = 0
 snake = [(ancho //2, alto // 2 )] # cabeza
 longitud_snake = 3
 
+#baner
+altura_baner = 40
+
 def generar_comida():
     while True:
         x = random.randint(0, (ancho - tamaño_bloque) // tamaño_bloque) * tamaño_bloque
-        y = random.randint(0, (alto - tamaño_bloque) // tamaño_bloque) * tamaño_bloque
+        #evitar que aparezca a la altura del baner
+        y = random.randint(altura_baner // tamaño_bloque, (alto - tamaño_bloque) // tamaño_bloque) * tamaño_bloque
         if (x,y) not in snake: # asegurarse de que la comida no aparezca en la serpiente
             return (x,y)
 #comida
@@ -82,7 +86,8 @@ def mostrar_menu():
         botones = {
             "Iniciar Juego": (ancho // 2, 150),
             "Escoger nivel": (ancho // 2, 220),
-            "Salir": (ancho // 2, 290)
+            "Tabla de puntuaciones": (ancho // 2, 290),
+            "Salir": (ancho // 2, 360)
         }
         for texto, (x,y) in botones.items():
             rect = pygame.Rect(x - 100, y - 20, 200, 40)
@@ -121,6 +126,7 @@ def seleccionar_nivel():
 #Llamar la función del menú
 mostrar_menu()
 
+
 #Bucle del juego
 while True:
     for evento in pygame.event.get():
@@ -141,6 +147,7 @@ while True:
                 vel_x = tamaño_bloque
                 vel_y = 0
 
+
     # cabeza basada en la dirección actual
     nueva_cabeza = (snake[0][0] + vel_x, snake[0][1] + vel_y)
 
@@ -152,8 +159,8 @@ while True:
         x = ancho -tamaño_bloque
 
     if y >= alto:
-        y = 0
-    elif y < 0:
+        y = altura_baner
+    elif y < altura_baner:
         y = alto - tamaño_bloque
 
     nueva_cabeza = (x, y)
@@ -161,10 +168,13 @@ while True:
 
     #comprobar conlisión consigo misma
     if nueva_cabeza in snake[1:]:
-        print("Game Over")
-        pygame.quit()
-        sys.exit()
+        mostrar_game_over(pantalla, ancho, alto, score, high_score, mostrar_menu, mostrar_menu)
+        # Reiniciar el juego
+        snake = [(ancho // 2, alto // 2)]  # Reiniciar la serpiente
+        longitud_snake = 3
         score = 0
+        vel_x = tamaño_bloque  # Reiniciar dirección
+        vel_y = 0
 
     #comprobar si la cabeza de la serpiente toca la comida
     if nueva_cabeza == comida:
@@ -173,7 +183,7 @@ while True:
         if score > high_score:
             high_score = score
             guardar_high_score(high_score)
-            
+
 
         comida = generar_comida()
 
@@ -191,6 +201,14 @@ while True:
 
     #Dibujar la pantalla
     pantalla.fill(negro)
+    #Dibujar el baner
+    pygame.draw.rect(pantalla, (50, 50, 50), (0, 0, ancho, altura_baner))
+    # Mostrar el score más alto
+    fuente = pygame.font.SysFont(None, 30)
+    texto_score = fuente.render(f"Score: {score}", True, (255, 255, 0))
+    texto_hig_score = fuente.render(f"High Score: {high_score}", True, (255, 255, 255))
+    pantalla.blit(texto_score, (10, 10))
+    pantalla.blit(texto_hig_score,(ancho - 160, 10))
     for i, segmento in enumerate(snake):
         color = verde_oscuro if i == 0 else verde
         pygame.draw.rect(pantalla, color, (segmento[0], segmento[1], tamaño_bloque, tamaño_bloque))
