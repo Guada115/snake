@@ -2,6 +2,8 @@ import  pygame
 import sys
 import random
 import os
+
+
 from app.game_over import mostrar_game_over
 
 #Inicializar pygame
@@ -84,8 +86,8 @@ def mostrar_menu():
 
         #botones
         botones = {
-            "Iniciar Juego": (ancho // 2, 150),
-            "Escoger nivel": (ancho // 2, 220),
+            "Modo Clásico": (ancho // 2, 150),
+            "Arcade por niveles": (ancho // 2, 220),
             "Tabla de puntuaciones": (ancho // 2, 290),
             "Salir": (ancho // 2, 360)
         }
@@ -114,14 +116,28 @@ def mostrar_menu():
                 if 150 - 20 <my < 150 + 20:
                     return  # Iniciar juego
                 elif 220 - 20 < my < 220 + 20:
-                    # mplementar la lógica para escoger el nivel
-                    seleccionar_nivel()
+                    # implementar la lógica para modo arcade
+                    arcade_mode()
                 elif 290 - 20 < my < 290 + 20:
                     pygame.quit()
                     sys.exit()
 
-def seleccionar_nivel():
-    print("Seleccionar nivel")
+def arcade_mode():
+    score = 0
+    nivel = 1
+    comida_por_nivel = 5
+    fps_base = 10
+
+    while True:
+        resultado = jugar_nivel_arcade(nivel, score, comida_por_nivel, fps_base)
+        if resultado is None:
+            #perdio el juego
+            return
+        else:
+            score += resultado
+            nivel += 1
+
+
 
 #Llamar la función del menú
 mostrar_menu()
@@ -209,6 +225,8 @@ while True:
     texto_hig_score = fuente.render(f"High Score: {high_score}", True, (255, 255, 255))
     pantalla.blit(texto_score, (10, 10))
     pantalla.blit(texto_hig_score,(ancho - 160, 10))
+
+    
     for i, segmento in enumerate(snake):
         color = verde_oscuro if i == 0 else verde
         pygame.draw.rect(pantalla, color, (segmento[0], segmento[1], tamaño_bloque, tamaño_bloque))
